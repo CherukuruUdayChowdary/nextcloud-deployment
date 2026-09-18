@@ -1,0 +1,53 @@
+# Local development stack (Docker Desktop on Windows)
+# Copy .env.example to .env and set the passwords before running:
+#   docker compose up -d
+services:
+  db:
+    image: mariadb:lts
+    restart: always
+    command: --transaction-isolation=READ-COMMITTED
+    volumes:
+      - db:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_DATABASE=nextcloud
+      - MYSQL_USER=nextcloud
+
+  redis:
+    image: redis:alpine
+    restart: always
+
+  app:
+    image: nextcloud:34.0.3-apache
+    restart: always
+    ports:
+      - 8080:80
+    depends_on:
+      - redis
+      - db
+    volumes:
+      - nextcloud:/var/www/html
+    environment:
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_DATABASE=nextcloud
+      - MYSQL_USER=nextcloud
+      - MYSQL_HOST=db
+
+  # Office editing (works in Docker only, not on shared hosting)
+  onlyoffice:
+    image: onlyoffice/documentserver
+    restart: always
+    ports:
+      - 8088:80
+    environment:
+      - JWT_ENABLED=true
+      - JWT_SECRET=${ONLYOFFICE_JWT_SECRET}
+      - ALLOW_PRIVATE_IP_ADDRESS=true
+    volumes:
+      - onlyoffice_data:/var/www/onlyoffice/Data
+
+volumes:
+  nextcloud:
+  db:
+  onlyoffice_data:

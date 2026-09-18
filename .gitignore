@@ -1,0 +1,6 @@
+.env
+*.sql
+*.tar.gz
+*.zip
+data/
+config.php
